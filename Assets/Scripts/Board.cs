@@ -1,24 +1,25 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Board : MonoBehaviour
 {
     public int width;
     public int height;
 
+    public int borderSize;
+
     public GameObject tilePrefab;
 
     private Tile[,] _allTiles;
+
     private void Start()
     {
         _allTiles = new Tile[width, height];
         SetupTiles();
+        SetupCamera();
     }
 
     private void Update()
     {
-   
     }
 
     private void SetupTiles()
@@ -33,5 +34,16 @@ public class Board : MonoBehaviour
                 tile.transform.parent = transform;
             }
         }
+    }
+
+    private void SetupCamera()
+    {
+        Camera.main.transform.position = new Vector3((width - 1) / 2f, (height - 1) / 2f, -10f);
+
+        float aspectRatio = Screen.width / (float) Screen.height;
+        float verticalSize = height / 2f + borderSize;
+        float horizontalSize = (width / 2f + borderSize) / aspectRatio;
+
+        Camera.main.orthographicSize = (verticalSize > horizontalSize) ? verticalSize : horizontalSize;
     }
 }
