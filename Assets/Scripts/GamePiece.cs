@@ -8,6 +8,7 @@ public class GamePiece : MonoBehaviour
     public int xIndex;
     public int yIndex;
 
+    private Board _board;
     private bool _isMoving;
 
     public InterpolationType interpolation = InterpolationType.SmootherStep;
@@ -40,6 +41,11 @@ public class GamePiece : MonoBehaviour
     {
         xIndex = x;
         yIndex = y;
+    }
+    
+    public void Init(Board board)
+    {
+        _board = board;
     }
 
     public void Move(int destX, int destY, float timeToMove)

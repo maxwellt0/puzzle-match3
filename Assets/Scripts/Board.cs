@@ -20,6 +20,7 @@ public class Board : MonoBehaviour
     {
         _allTiles = new Tile[width, height];
         _allGamePieces = new GamePiece[width, height];
+        
         SetupTiles();
         SetupCamera();
         FillRandom();
@@ -68,10 +69,11 @@ public class Board : MonoBehaviour
         return gamePiecePrefabs[randomIndex];
     }
 
-    private void PlaceGamePiece(GamePiece gamePiece, int x, int y)
+    public void PlaceGamePiece(GamePiece gamePiece, int x, int y)
     {
         gamePiece.transform.position = new Vector3(x, y, 0);
         gamePiece.transform.rotation = Quaternion.identity;
+        _allGamePieces[x, y] = gamePiece;
         gamePiece.SetCoord(x, y);
     }
 
@@ -85,7 +87,11 @@ public class Board : MonoBehaviour
 
                 if (randomPiece != null)
                 {
-                    PlaceGamePiece(randomPiece.GetComponent<GamePiece>(), i, j);
+                    var gamePieceComponent = randomPiece.GetComponent<GamePiece>();
+                    gamePieceComponent.Init(this);
+                    PlaceGamePiece(gamePieceComponent, i, j);
+                    
+                    randomPiece.transform.parent = transform;
                 }
             }
         }
