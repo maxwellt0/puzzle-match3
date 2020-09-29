@@ -13,11 +13,14 @@ public class Board : MonoBehaviour
     private Tile[,] _allTiles;
     private GamePiece[,] _allGamePieces;
 
+    private Tile _clickedTile;
+    private Tile _targetTile;
+
     private void Start()
     {
         _allTiles = new Tile[width, height];
         _allGamePieces = new GamePiece[width, height];
-        // SetupTiles();
+        SetupTiles();
         SetupCamera();
         FillRandom();
     }
@@ -72,7 +75,7 @@ public class Board : MonoBehaviour
         gamePiece.SetCoord(x, y);
     }
 
-    void FillRandom()
+    private void FillRandom()
     {
         for (int i = 0; i < width; i++)
         {
@@ -86,5 +89,37 @@ public class Board : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void ClickTile(Tile tile)
+    {
+        if (_clickedTile == null)
+        {
+            _clickedTile = tile;
+        }
+    }
+
+    public void DragToTile(Tile tile)
+    {
+        if (_clickedTile != null)
+        {
+            _targetTile = tile;
+        }
+    }
+
+    public void ReleaseTile()
+    {
+        if (_clickedTile != null && _targetTile != null)
+        {
+            SwitchTiles(_clickedTile, _targetTile);
+        }
+    }
+
+    private void SwitchTiles(Tile clickedTile, Tile targetTile)
+    {
+         
+        
+        _clickedTile = null;
+        _targetTile = null;
     }
 }

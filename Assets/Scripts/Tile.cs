@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,15 +9,29 @@ public class Tile : MonoBehaviour
     public int yIndex;
 
     private Board _board;
-    
-    private void Start()
+
+    private void OnMouseDown()
     {
-        
+        if (_board != null)
+        {
+            _board.ClickTile(this);
+        }
     }
-    
-    private void Update()
+
+    private void OnMouseEnter()
     {
-        
+        if (_board != null)
+        {
+            _board.DragToTile(this);
+        }
+    }
+
+    private void OnMouseUp()
+    {
+        if (_board != null)
+        {
+            _board.ReleaseTile();
+        }
     }
 
     public void Init(int x, int y, Board board)
@@ -25,4 +40,5 @@ public class Tile : MonoBehaviour
         yIndex = y;
         _board = board;
     }
+    
 }
