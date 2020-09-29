@@ -8,14 +8,18 @@ public class Board : MonoBehaviour
     public int borderSize;
 
     public GameObject tilePrefab;
+    public GamePiece[] gamePiecePrefabs;
 
     private Tile[,] _allTiles;
+    private GamePiece[,] _allGamePieces;
 
     private void Start()
     {
         _allTiles = new Tile[width, height];
-        SetupTiles();
+        _allGamePieces = new GamePiece[width, height];
+        // SetupTiles();
         SetupCamera();
+        FillRandom();
     }
 
     private void Update()
@@ -47,5 +51,40 @@ public class Board : MonoBehaviour
         float horizontalSize = (width / 2f + borderSize) / aspectRatio;
 
         Camera.main.orthographicSize = (verticalSize > horizontalSize) ? verticalSize : horizontalSize;
+    }
+
+    private GamePiece GetRandomGamePiece()
+    {
+        int randomIndex = Random.Range(0, gamePiecePrefabs.Length);
+
+        if (gamePiecePrefabs[randomIndex] == null)
+        {
+            Debug.Log("Board: [" + randomIndex + "] doesn't contain a valid GamePiece prefab!");
+        }
+
+        return gamePiecePrefabs[randomIndex];
+    }
+
+    private void PlaceGamePiece(GamePiece gamePiece, int x, int y)
+    {
+        gamePiece.transform.position = new Vector3(x, y, 0);
+        gamePiece.transform.rotation = Quaternion.identity;
+        gamePiece.SetCoord(x, y);
+    }
+
+    void FillRandom()
+    {
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                GamePiece randomPiece = Instantiate(GetRandomGamePiece(), Vector3.zero, Quaternion.identity);
+
+                if (randomPiece != null)
+                {
+                    PlaceGamePiece(randomPiece.GetComponent<GamePiece>(), i, j);
+                }
+            }
+        }
     }
 }
