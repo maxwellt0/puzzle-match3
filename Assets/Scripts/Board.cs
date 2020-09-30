@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -158,5 +159,42 @@ public class Board : MonoBehaviour
         }
 
         return false;
+    }
+
+    private List<GamePiece> FindMatches(int startX, int startY, Vector2 searchDirection, int minlength = 3)
+    {
+        List<GamePiece> matches = new List<GamePiece>();
+        GamePiece startPiece = IsWithinBounds(startX, startY) ? _allGamePieces[startX, startY] : null;
+
+        if (startPiece == null)
+        {
+            return null;
+        }
+
+        matches.Add(startPiece);
+
+        int maxValue = (width > height) ? width : height;
+
+        for (int i = 1; i < maxValue; i++)
+        {
+            var nextX = startX + (int) Mathf.Clamp(searchDirection.x, -1, 1) * i;
+            var nextY = startY + (int) Mathf.Clamp(searchDirection.y, -1, 1) * i;
+
+            if (!IsWithinBounds(nextX, nextY))
+            {
+                break;
+            }
+
+            GamePiece nextPiece = _allGamePieces[nextX, nextY];
+
+            if (nextPiece.matchValue != startPiece.matchValue || matches.Contains(nextPiece))
+            {
+                break;
+            }
+            
+            matches.Add(nextPiece);
+        }
+
+        return matches.Count >= minlength ? matches : null;
     }
 }
