@@ -32,7 +32,7 @@ public class Board : MonoBehaviour
 
         SetupTiles();
         SetupCamera();
-        FillBoard();
+        FillBoard(10, 0.5f);
     }
 
     private void Update()
@@ -95,21 +95,28 @@ public class Board : MonoBehaviour
         return (x >= 0 && x < width && y >= 0 && y < height);
     }
 
-    private void FillBoard()
+    private void FillBoard(int falseYOffset = 0, float moveTime = 0.1f)
     {
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
             {
+                if (_allGamePieces[i, j] != null)
+                {
+                    continue;
+                }
+
+                ;
+
                 const int maxIterations = 100;
                 var iterations = 0;
 
-                FillRandomAt(i, j);
+                FillRandomAt(i, j, falseYOffset, moveTime);
 
                 while (HasMatchOnFill(i, j))
                 {
                     ClearPieceAt(i, j);
-                    FillRandomAt(i, j);
+                    FillRandomAt(i, j, falseYOffset, moveTime);
 
                     iterations++;
 
@@ -131,7 +138,7 @@ public class Board : MonoBehaviour
         return CombineMatches(leftMatches, downwardMatches).Count > 0;
     }
 
-    private GamePiece FillRandomAt(int x, int y)
+    private GamePiece FillRandomAt(int x, int y, int falseYOffset = 0, float moveTime = 0.1f)
     {
         GamePiece randomPiece = Instantiate(GetRandomGamePiece(), Vector3.zero, Quaternion.identity);
 
@@ -144,6 +151,13 @@ public class Board : MonoBehaviour
 
         gamePieceComponent.Init(this);
         PlaceGamePiece(gamePieceComponent, x, y);
+
+        if (falseYOffset != 0)
+        {
+            randomPiece.transform.position = new Vector3(x, y + falseYOffset, 0);
+            gamePieceComponent.Move(x, y, moveTime);
+        }
+
         randomPiece.transform.parent = transform;
 
         return gamePieceComponent;
@@ -358,6 +372,22 @@ public class Board : MonoBehaviour
         return matches;
     }
 
+    private List<GamePiece> FindAllMatches()
+    {
+        List<GamePiece> combinedMatches = new List<GamePiece>();
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                List<GamePiece> matches = FindMatchesAt(i, j);
+                combinedMatches = combinedMatches.Union(matches).ToList();
+            }
+        }
+
+        return combinedMatches;
+    }
+
     private List<GamePiece> CombineMatches(List<GamePiece> matches1, List<GamePiece> matches2)
     {
         if (matches1 == null)
@@ -476,11 +506,26 @@ public class Board : MonoBehaviour
     private IEnumerator ClearAndRefillBoardRoutine(List<GamePiece> gamePieces)
     {
         _playerInputEnabled = false;
-        
-        yield return StartCoroutine(ClearAndCollapseRoutine(gamePieces));
-        yield return null;
+        List<GamePiece> matches = gamePieces;
 
+        do
+        {
+            yield return StartCoroutine(ClearAndCollapseRoutine(matches));
+
+            yield return StartCoroutine(RefillRoutine());
+
+            matches = FindAllMatches();
+            
+            yield return new WaitForSeconds(0.5f);
+        } while (matches.Count != 0);
+        
         _playerInputEnabled = true;
+    }
+
+    private IEnumerator RefillRoutine()
+    {
+        FillBoard(10, 0.5f);
+        yield return null;
     }
 
     private IEnumerator ClearAndCollapseRoutine(List<GamePiece> gamePieces)
@@ -500,7 +545,7 @@ public class Board : MonoBehaviour
                 yield return null;
             }
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.2f);
 
             List<GamePiece> matches = FindMatchesAt(movingPieces);
 
@@ -521,7 +566,7 @@ public class Board : MonoBehaviour
         {
             if (piece != null)
             {
-                if (piece.transform.position.y - (float) piece.yIndex > 0.001f)
+                if (piece.transform.position.y - piece.yIndex > 0.001f)
                 {
                     return false;
                 }
