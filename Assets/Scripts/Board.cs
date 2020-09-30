@@ -30,7 +30,7 @@ public class Board : MonoBehaviour
         
         SetupTiles();
         SetupCamera();
-        FillRandom();
+        FillBoard();
     }
 
     private void Update()
@@ -92,24 +92,60 @@ public class Board : MonoBehaviour
         return (x >= 0 && x < width && y >= 0 && y < height);
     }
 
-    private void FillRandom()
+    private void FillBoard()
     {
+        
+
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
             {
-                GamePiece randomPiece = Instantiate(GetRandomGamePiece(), Vector3.zero, Quaternion.identity);
-
-                if (randomPiece != null)
+                const int maxIterations = 100;
+                var iterations = 0;
+                
+                FillRandomAt(i, j);
+                
+                while (HasMatchOnFill(i, j))
                 {
-                    var gamePieceComponent = randomPiece.GetComponent<GamePiece>();
-                    gamePieceComponent.Init(this);
-                    PlaceGamePiece(gamePieceComponent, i, j);
+                    ClearPieceAt(i, j);
+                    FillRandomAt(i, j);
                     
-                    randomPiece.transform.parent = transform;
+                    iterations++;
+
+                    if (iterations >= maxIterations)
+                    {
+                        Debug.Log("Max iterations reached!");
+                        break;
+                    }
                 }
             }
         }
+    }
+
+    private bool HasMatchOnFill(int x, int y, int minLength = 3)
+    {
+        List<GamePiece> leftMatches = FindMatches(x, y, new Vector2(-1, 0), minLength);
+        List<GamePiece> downwardMatches = FindMatches(x, y, new Vector2(0, -1), minLength);
+
+        return CombineMatches(leftMatches, downwardMatches).Count > 0;
+    }
+
+    private GamePiece FillRandomAt(int x, int y)
+    {
+        GamePiece randomPiece = Instantiate(GetRandomGamePiece(), Vector3.zero, Quaternion.identity);
+
+        if (randomPiece == null)
+        {
+            return null;
+        }
+        
+        var gamePieceComponent = randomPiece.GetComponent<GamePiece>();
+        
+        gamePieceComponent.Init(this);
+        PlaceGamePiece(gamePieceComponent, x, y);
+        randomPiece.transform.parent = transform;
+
+        return gamePieceComponent;
     }
 
     public void ClickTile(Tile tile)
