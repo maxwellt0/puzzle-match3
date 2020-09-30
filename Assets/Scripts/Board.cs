@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -141,11 +142,37 @@ public class Board : MonoBehaviour
 
     private void SwitchTiles(Tile clickedTile, Tile targetTile)
     {
+        StartCoroutine(SwitchTilesRoutine(clickedTile, targetTile));
+    }
+
+    private IEnumerator SwitchTilesRoutine(Tile clickedTile, Tile targetTile)
+    {
         GamePiece clickedPiece = _allGamePieces[clickedTile.xIndex, clickedTile.yIndex];
         GamePiece targetPiece = _allGamePieces[targetTile.xIndex, targetTile.yIndex];
+
+        if (targetPiece == null || clickedPiece == null)
+        {
+            yield break;
+        }
         
         clickedPiece.Move(targetTile.xIndex, targetTile.yIndex, swapTime);
         targetPiece.Move(clickedPiece.xIndex, clickedPiece.yIndex, swapTime);
+
+        yield return new WaitForSeconds(swapTime);
+        
+        List<GamePiece> clickedPieceMatches = FindMatchesAt(clickedPiece.xIndex, clickedPiece.yIndex);
+        List<GamePiece> targetPieceMatches = FindMatchesAt(targetTile.xIndex, targetTile.yIndex);
+
+        if (targetPieceMatches.Count == 0 && clickedPieceMatches.Count == 0)
+        {
+            clickedPiece.Move(clickedTile.xIndex, clickedTile.yIndex, swapTime);
+            targetPiece.Move(targetTile.xIndex, targetTile.yIndex, swapTime);
+            
+            yield return new WaitForSeconds(swapTime);
+        }
+
+        HighlightMatchesAt(clickedPiece.xIndex, clickedPiece.yIndex);
+        HighlightMatchesAt(targetTile.xIndex, targetTile.yIndex);
     }
 
     private bool IsNextTo(Tile start, Tile end)
@@ -226,24 +253,46 @@ public class Board : MonoBehaviour
         {
             for (int j = 0; j < height; j++)
             {
-                SpriteRenderer spriteRenderer = _allTiles[i, j].GetComponent<SpriteRenderer>();
-                spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, 0);
-
-                List<GamePiece> horizMatches = FindHorizontalMatches(i, j, 3);
-                List<GamePiece> vertMatches = FindVerticalMatches(i, j, 3);
-
-                var combineMatches = CombineMatches(horizMatches, vertMatches);
-
-                if (combineMatches.Count > 0)
-                {
-                    foreach (GamePiece piece in combineMatches)
-                    {
-                        spriteRenderer = _allTiles[piece.xIndex, piece.yIndex].GetComponent<SpriteRenderer>();
-                        spriteRenderer.color = piece.GetComponent<SpriteRenderer>().color;
-                    }
-                }
+                HighlightMatchesAt(i, j);
             }
         }
+    }
+
+    private void HighlightMatchesAt(int x, int y)
+    {
+        HighlightTileOff(x, y);
+
+        var combineMatches = FindMatchesAt(x, y);
+
+        if (combineMatches.Count <= 0)
+        {
+            return;
+        }
+
+        foreach (GamePiece piece in combineMatches)
+        {
+            HighlightTileOn(piece.xIndex, piece.yIndex, piece.GetComponent<SpriteRenderer>().color);
+        }
+    }
+
+    private void HighlightTileOn(int x, int y, Color color)
+    {
+        SpriteRenderer spriteRenderer = _allTiles[x, y].GetComponent<SpriteRenderer>();
+        spriteRenderer.color = color;
+    }
+
+    private void HighlightTileOff(int i, int j)
+    {
+        SpriteRenderer spriteRenderer = _allTiles[i, j].GetComponent<SpriteRenderer>();
+        spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, 0);
+    }
+
+    private List<GamePiece> FindMatchesAt(int i, int j, int maxLength = 3)
+    {
+        List<GamePiece> horizMatches = FindHorizontalMatches(i, j, maxLength);
+        List<GamePiece> vertMatches = FindVerticalMatches(i, j, maxLength);
+
+        return CombineMatches(horizMatches, vertMatches);
     }
 
     private List<GamePiece> CombineMatches(List<GamePiece> matches1, List<GamePiece> matches2)
@@ -259,5 +308,10 @@ public class Board : MonoBehaviour
         }
 
         return matches1.Union(matches2).ToList();
+    }
+
+    private void ClearPieceAt(int x, int y) 
+    {
+        
     }
 }
