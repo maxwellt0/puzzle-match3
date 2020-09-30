@@ -315,10 +315,9 @@ MonoBehaviour:
   gamePiecePrefabs:
   - {fileID: -5500493254374706163, guid: a79ad1f59c46b466a84b38f36b13f7ff, type: 3}
   - {fileID: -3765684214258947365, guid: 39493cdab3e3842f99666cd2460615bc, type: 3}
-  - {fileID: -4541732949002215335, guid: 540387b0725b34effbf48d8e609a5a35, type: 3}
-  - {fileID: 3537678845843579644, guid: c23065fdd49744f4397b2b00ce78ec4e, type: 3}
-  - {fileID: 2807323580658026858, guid: 73ae0e9da700b4197810b9b58b55a375, type: 3}
   - {fileID: 8968045699659602063, guid: 8514fc354d6c442c48f958aa011a670b, type: 3}
+  - {fileID: 3537678845843579644, guid: c23065fdd49744f4397b2b00ce78ec4e, type: 3}
+  swapTime: 0.5
 --- !u!4 &1738129496
 Transform:
   m_ObjectHideFlags: 0
