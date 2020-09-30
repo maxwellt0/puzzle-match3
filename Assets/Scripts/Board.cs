@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class Board : MonoBehaviour
 {
@@ -9,6 +11,8 @@ public class Board : MonoBehaviour
 
     public GameObject tilePrefab;
     public GamePiece[] gamePiecePrefabs;
+
+    public float swapTime = 0.5f;
 
     private Tile[,] _allTiles;
     private GamePiece[,] _allGamePieces;
@@ -73,8 +77,16 @@ public class Board : MonoBehaviour
     {
         gamePiece.transform.position = new Vector3(x, y, 0);
         gamePiece.transform.rotation = Quaternion.identity;
-        _allGamePieces[x, y] = gamePiece;
+        if (IsWithinBounds(x, y))
+        {
+            _allGamePieces[x, y] = gamePiece;
+        }
         gamePiece.SetCoord(x, y);
+    }
+
+    private bool IsWithinBounds(int x, int y)
+    {
+        return (x >= 0 && x < width && y >= 0 && y < height);
     }
 
     private void FillRandom()
@@ -107,7 +119,7 @@ public class Board : MonoBehaviour
 
     public void DragToTile(Tile tile)
     {
-        if (_clickedTile != null)
+        if (_clickedTile != null && IsNextTo(_clickedTile, tile))
         {
             _targetTile = tile;
         }
@@ -119,13 +131,32 @@ public class Board : MonoBehaviour
         {
             SwitchTiles(_clickedTile, _targetTile);
         }
+        
+        _clickedTile = null;
+        _targetTile = null;
     }
 
     private void SwitchTiles(Tile clickedTile, Tile targetTile)
     {
-         
+        GamePiece clickedPiece = _allGamePieces[clickedTile.xIndex, clickedTile.yIndex];
+        GamePiece targetPiece = _allGamePieces[targetTile.xIndex, targetTile.yIndex];
         
-        _clickedTile = null;
-        _targetTile = null;
+        clickedPiece.Move(targetTile.xIndex, targetTile.yIndex, swapTime);
+        targetPiece.Move(clickedPiece.xIndex, clickedPiece.yIndex, swapTime);
+    }
+
+    private bool IsNextTo(Tile start, Tile end)
+    {
+        if (Math.Abs(start.xIndex - end.xIndex) == 1 && start.yIndex == end.yIndex)
+        {
+            return true;
+        }
+
+        if (Math.Abs(start.yIndex - end.yIndex) == 1 && start.xIndex == end.xIndex)
+        {
+            return true;
+        }
+
+        return false;
     }
 }
