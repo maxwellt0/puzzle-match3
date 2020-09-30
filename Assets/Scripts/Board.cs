@@ -31,7 +31,6 @@ public class Board : MonoBehaviour
         SetupTiles();
         SetupCamera();
         FillRandom();
-        HighlightMatches();
     }
 
     private void Update()
@@ -170,9 +169,11 @@ public class Board : MonoBehaviour
             
             yield return new WaitForSeconds(swapTime);
         }
-
-        HighlightMatchesAt(clickedPiece.xIndex, clickedPiece.yIndex);
-        HighlightMatchesAt(targetTile.xIndex, targetTile.yIndex);
+        else
+        {
+            ClearPieceAt(clickedPieceMatches);
+            ClearPieceAt(targetPieceMatches);
+        }
     }
 
     private bool IsNextTo(Tile start, Tile end)
@@ -215,8 +216,8 @@ public class Board : MonoBehaviour
             }
 
             GamePiece nextPiece = _allGamePieces[nextX, nextY];
-
-            if (nextPiece.matchValue != startPiece.matchValue || matches.Contains(nextPiece))
+            
+            if (nextPiece == null || nextPiece.matchValue != startPiece.matchValue || matches.Contains(nextPiece))
             {
                 break;
             }
@@ -310,8 +311,34 @@ public class Board : MonoBehaviour
         return matches1.Union(matches2).ToList();
     }
 
-    private void ClearPieceAt(int x, int y) 
+    private void ClearPieceAt(int x, int y)
     {
-        
+        GamePiece pieceToClear = _allGamePieces[x, y];
+
+        if (pieceToClear != null)
+        {
+            _allGamePieces[x, y] = null;
+            Destroy(pieceToClear.gameObject);
+        }
+        HighlightTileOff(x, y);
+    }
+
+    private void ClearPieceAt(List<GamePiece> gamePieces)
+    {
+        foreach (GamePiece piece in gamePieces)
+        {
+            ClearPieceAt(piece.xIndex, piece.yIndex);
+        }
+    }
+
+    private void ClearBoard()
+    {
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                ClearPieceAt(i,j);
+            }
+        }
     }
 }
