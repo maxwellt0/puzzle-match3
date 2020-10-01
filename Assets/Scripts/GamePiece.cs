@@ -36,22 +36,6 @@ public class GamePiece : MonoBehaviour
         Wild
     }
     
-    private void Start()
-    {
-    }
-
-    private void Update()
-    {
-        // if (Input.GetKeyDown(KeyCode.RightArrow))
-        // {
-        //     Move((int) transform.position.x + 2, (int) transform.position.y, 0.5f);
-        // }
-        // else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        // {
-        //     Move((int) transform.position.x - 2, (int) transform.position.y, 0.5f);
-        // }
-    }
-
     public void SetCoord(int x, int y)
     {
         xIndex = x;

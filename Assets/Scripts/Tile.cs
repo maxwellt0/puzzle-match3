@@ -1,7 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+
+public enum TileType
+{
+    Normal,
+    Obstacle
+}
 
 public class Tile : MonoBehaviour
 {
@@ -10,6 +13,7 @@ public class Tile : MonoBehaviour
 
     private Board _board;
 
+    public TileType tileType = TileType.Normal;
     private void OnMouseDown()
     {
         if (_board != null)

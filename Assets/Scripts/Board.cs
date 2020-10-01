@@ -12,7 +12,8 @@ public class Board : MonoBehaviour
 
     public int borderSize;
 
-    public GameObject tilePrefab;
+    public GameObject tileNormalPrefab;
+    public GameObject tileObstaclePrefab;
     public GamePiece[] gamePiecePrefabs;
 
     public float swapTime = 0.5f;
@@ -24,6 +25,17 @@ public class Board : MonoBehaviour
     private Tile _targetTile;
 
     private bool _playerInputEnabled = true;
+
+    public StartingTile[] startingTiles;
+    
+    [System.Serializable]
+    public class StartingTile
+    {
+        public GameObject tilePrefab;
+        public int x;
+        public int y;
+        public int z;
+    }
 
     private void Start()
     {
@@ -41,18 +53,39 @@ public class Board : MonoBehaviour
 
     private void SetupTiles()
     {
+        foreach (StartingTile startingTile in startingTiles)
+        {
+            if (startingTile != null)
+            {
+                MakeTile(startingTile.tilePrefab, startingTile.x, startingTile.y, startingTile.z);
+            }
+        }
+        
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
             {
-                GameObject tile = Instantiate(tilePrefab, new Vector3(i, j, 0), Quaternion.identity);
-                tile.name = "Tile (" + i + "," + j + ")";
-                tile.transform.parent = transform;
-
-                _allTiles[i, j] = tile.GetComponent<Tile>();
-                _allTiles[i, j].Init(i, j, this);
+                if (_allTiles[i, j] == null)
+                {
+                    MakeTile(tileNormalPrefab, i, j);
+                }
             }
         }
+    }
+
+    private void MakeTile(GameObject prefab, int x, int y, int z = 0)
+    {
+        if (prefab == null)
+        {
+            return;
+        }
+        
+        GameObject tile = Instantiate(prefab, new Vector3(x, y, z), Quaternion.identity);
+        tile.name = "Tile (" + x + "," + y + ")";
+        tile.transform.parent = transform;
+
+        _allTiles[x, y] = tile.GetComponent<Tile>();
+        _allTiles[x, y].Init(x, y, this);
     }
 
     private void SetupCamera()
@@ -101,12 +134,10 @@ public class Board : MonoBehaviour
         {
             for (int j = 0; j < height; j++)
             {
-                if (_allGamePieces[i, j] != null)
+                if (_allGamePieces[i, j] != null || _allTiles[i,j].tileType == TileType.Obstacle)
                 {
                     continue;
                 }
-
-                ;
 
                 const int maxIterations = 100;
                 var iterations = 0;
@@ -444,26 +475,30 @@ public class Board : MonoBehaviour
 
         for (int i = 0; i < height - 1; i++)
         {
-            if (_allGamePieces[column, i] == null)
+            if (_allGamePieces[column, i] != null || _allTiles[column, i].tileType == TileType.Obstacle)
             {
-                for (int j = i + 1; j < height; j++)
+                continue;
+            }
+            
+            for (int j = i + 1; j < height; j++)
+            {
+                if (_allGamePieces[column, j] == null)
                 {
-                    if (_allGamePieces[column, j] != null)
-                    {
-                        _allGamePieces[column, j].Move(column, i, collapseTime * (j - 1));
-                        _allGamePieces[column, i] = _allGamePieces[column, j];
-                        _allGamePieces[column, i].SetCoord(column, i);
-
-                        if (!movingPieces.Contains(_allGamePieces[column, i]))
-                        {
-                            movingPieces.Add(_allGamePieces[column, i]);
-                        }
-
-                        _allGamePieces[column, j] = null;
-
-                        break;
-                    }
+                    continue;
                 }
+                    
+                _allGamePieces[column, j].Move(column, i, collapseTime * (j - 1));
+                _allGamePieces[column, i] = _allGamePieces[column, j];
+                _allGamePieces[column, i].SetCoord(column, i);
+
+                if (!movingPieces.Contains(_allGamePieces[column, i]))
+                {
+                    movingPieces.Add(_allGamePieces[column, i]);
+                }
+
+                _allGamePieces[column, j] = null;
+
+                break;
             }
         }
 
@@ -564,12 +599,14 @@ public class Board : MonoBehaviour
     {
         foreach (GamePiece piece in gamePieces)
         {
-            if (piece != null)
+            if (piece == null)
             {
-                if (piece.transform.position.y - piece.yIndex > 0.001f)
-                {
-                    return false;
-                }
+                continue;
+            }
+            
+            if (piece.transform.position.y - piece.yIndex > 0.001f)
+            {
+                return false;
             }
         }
 
